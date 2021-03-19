@@ -34,7 +34,7 @@ for list_poke in lists_poke:
     # 各ポケモンのデータ情報
     datum_poke = soup_poke.find('table', attrs={'summary': '基本データ'})
     datum2_poke = soup_poke.find('table', attrs={'class': 'center'})
-    list_skill_poke = soup_test.find('table', attrs={'summary':'技データ'}).find_all('tr')
+    list_skill_poke = soup_poke.find('table', attrs={'summary':'技データ'}).find_all('tr')
     
     # 不要な情報を削除
     if datum_poke.find_all('span', attrs={'class':'small'}) != []:
@@ -52,7 +52,7 @@ for list_poke in lists_poke:
     
     # 各ポケモンの画像データ取得
     img_poke = Image.open(io.BytesIO(requests.get(url_img_poke).content))
-    img_poke.save(f'poke/img/poke/{name_poke}.gif')
+    img_poke.save(f'../img/{name_poke}.gif')
     
     # 高さ/重さ/タイプ
     for i in range(len(datum_poke.find_all('tr', attrs={'class': 'center'}))):
@@ -197,7 +197,22 @@ for list_poke in lists_poke:
     s = 0
 
     # 不要な行を削除(後ろから走査)
+    # numの初期化
     num = len(list_skill_poke)
+    lst_index = []
+    # 進化前のときだけ覚える技が複数パターンある場合(スピアーなど)
+    for i in range(num):
+        if 'の時だけ覚える技' in list_skill_poke[num - 1 - i].text:
+            # lst_ indexには後ろのインデックスから追加
+            lst_index.append(num - 1 - i)
+            # 進化前のときだけ覚える技が複数パターンある場合(スピアーなど)の削除
+            # -> 最初の'進化前『~』の時だけ覚える技'のみ残す
+    if len(lst_index) >= 2:
+        for h in range(len(lst_index) - 1):
+            del list_skill_poke[lst_index[h]]
+    # numの初期化
+    num = len(list_skill_poke)
+    # 空白行、'※'から始まる行の削除
     for i in range(num):
         if list_skill_poke[num - 1 - i].text == '':
             del list_skill_poke[num - 1 - i]
@@ -205,13 +220,13 @@ for list_poke in lists_poke:
             del list_skill_poke[num - 1 - i]
 
     for i in range(len(list_skill_poke)):
-        if 'がレベルアップで覚える技' in list_skill_poke[i].text:
+        if 'レベルアップで覚える技' in list_skill_poke[i].text:
             j = i
         if '◆\xa0わざマシンで覚える技' in list_skill_poke[i].text:
             k = i
         if '◆\xa0わざレコードで覚える技' in list_skill_poke[i].text:
             l = i
-        if 'のタマゴ技' in list_skill_poke[i].text:
+        if 'タマゴ技' in list_skill_poke[i].text and '◆\xa0' in list_skill_poke[i].text:
             m = i
         if '◆\xa0教え技' in list_skill_poke[i].text:
             n = i
@@ -225,50 +240,111 @@ for list_poke in lists_poke:
             r = i
         if '◆\xa0過去の配布限定の特別な技' in list_skill_poke[i].text:
             s = i
+    
+    num_list = [j, k, l, m, n, o, p, q, r, s]
+    num = len(num_list)
+
+    # 0をリストから削除
+    for i in range(num):
+        if num_list[num - 1 - i] == 0:
+            del num_list[num - 1 - i]
+    # num_listの順番をソート
+    num_list.sort()
 
     # レベルアップで覚える技
     skill_lvup_poke = []
     if j == 0:
         # {'わざ':'Lv'}
         dic_skill_lvup_poke = {}
-        for i in range(0, len(list_skill_poke))[j + 2: k if k != 0 else l if l != 0 else m if m != 0 else n if n != 0 else o if o != 0 else p if p != 0 else q if q != 0 else r if r != 0 else s if s != 0 else (len(list_skill_poke) - 1): 2]:
-            dic_skill_lvup_poke[f"{list_skill_poke[i].find_all('td')[1].text.replace('New','')}"] = list_skill_poke[i].find_all('td')[0].text
-        skill_lvup_poke.append(dic_skill_lvup_poke)    
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > j:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[j + 2: nxt: 2]:
+            dic_skill_lvup_poke[f"{list_skill_poke[i].find_all('td')[1].text.replace('New','').replace('!', '')}"] = list_skill_poke[i].find_all('td')[0].text
+        skill_lvup_poke.append(dic_skill_lvup_poke)
 
     # わざマシンで覚える技
     skill_machine_poke = []
     if k != 0:
-        for i in range(0, len(list_skill_poke))[k + 1: l if l != 0 else m if m != 0 else n if n != 0 else o if o != 0 else p if p != 0 else q if q != 0 else r if r != 0 else s if s != 0 else (len(list_skill_poke) - 1): 2]:
-            skill_machine_poke.append(list_skill_poke[i].find_all('td')[1].text.replace('New',''))
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > k:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[k + 1: nxt: 2]:
+            if list_skill_poke[i].text == 'なし':
+                break
+            else:
+                skill_machine_poke.append(list_skill_poke[i].find_all('td')[1].text.replace('New','').replace('!', ''))
 
     # わざレコードで覚える技
     skill_record_poke =  []
     if l != 0:
-        for i in range(0, len(list_skill_poke))[l + 1: m if m != 0 else n if n != 0 else o if o != 0 else p if p != 0 else q if q != 0 else r if r != 0 else s if s != 0 else (len(list_skill_poke) - 1): 2]:
-            skill_record_poke.append(list_skill_poke[i].find_all('td')[1].text.replace('New',''))
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > l:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[l + 1: nxt: 2]:
+            if list_skill_poke[i].text == 'なし':
+                break
+            else:
+                skill_record_poke.append(list_skill_poke[i].find_all('td')[1].text.replace('New','').replace('!', ''))
 
     # たまご技
     skill_egg_poke = []
     if m != 0:
-        for i in range(0, len(list_skill_poke))[m + 1: n if n != 0 else o if o != 0 else p if p != 0 else q if q != 0 else r if r != 0 else s if s != 0 else (len(list_skill_poke) - 1): 2]:
-            skill_egg_poke.append(list_skill_poke[i].find_all('td')[1].text.replace('New','').split('[')[0])
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > m:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[m + 1: nxt: 2]:
+            if list_skill_poke[i].text == 'なし':
+                break
+            else:
+                skill_egg_poke.append(list_skill_poke[i].find_all('td')[1].text.replace('New','').replace('!', '').split('[')[0])
 
     # 教え技
     skill_learn_poke = []
     if n != 0:
         # {'わざ':'バージョン'}
         dic_skill_learn_poke = {}
-        for i in range(0, len(list_skill_poke))[n + 1: o if o != 0 else p if p != 0 else q if q != 0 else r if r != 0 else s if s != 0 else (len(list_skill_poke) - 1): 2]:
-            dic_skill_learn_poke[f"{list_skill_poke[i].find_all('td')[1].text.replace('New','')}"] = list_skill_poke[i].find_all('td')[0].text
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > n:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[n + 1: nxt: 2]:
+            if list_skill_poke[i].text == 'なし':
+                break
+            else:
+                dic_skill_learn_poke[f"{list_skill_poke[i].find_all('td')[1].text.replace('New','').replace('!', '')}"] = list_skill_poke[i].find_all('td')[0].text
         skill_learn_poke.append(dic_skill_learn_poke)
-
+                
     # 特別な技
     skill_special_poke = []
     if o != 0:
         # {'わざ':'種別'}
         dic_skill_special_poke = {}
-        for i in range(0, len(list_skill_poke))[o + 1: p if p != 0 else q if q != 0 else r if r != 0 else s if s != 0 else (len(list_skill_poke) - 1): 2]:
-            dic_skill_special_poke[f"{list_skill_poke[i].find_all('td')[1].text.replace('New','')}"] = list_skill_poke[i].find_all('td')[0].text.replace('キョ', 'キョダイマックス技')
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > o:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[o + 1: nxt: 2]:
+            if list_skill_poke[i].text == 'なし':
+                break
+            else:
+                dic_skill_special_poke[f"{list_skill_poke[i].find_all('td')[1].text.replace('New','').replace('!', '')}"] = list_skill_poke[i].find_all('td')[0].text.replace('キョ', 'キョダイマックス技')
         skill_special_poke.append(dic_skill_special_poke)
 
     # 進化前のみ覚える技
@@ -276,14 +352,29 @@ for list_poke in lists_poke:
     if p != 0:
         # {'わざ':'条件'}
         dic_skill_onbase_poke = {}
-        for i in range(0, len(list_skill_poke))[p + 1: q if q != 0 else r if r != 0 else s if s != 0 else (len(list_skill_poke) - 1): 2]:
-            dic_skill_onbase_poke[f"{list_skill_poke[i].find_all('td')[1].text.replace('New','')}"] = list_skill_poke[i].find_all('td')[0].text
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > p:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[p + 1: nxt: 2]:
+            if list_skill_poke[i].text == 'なし':
+                break
+            else:
+                dic_skill_onbase_poke[f"{list_skill_poke[i].find_all('td')[1].text.replace('New','').replace('!', '')}"] = list_skill_poke[i].find_all('td')[0].text
         skill_onbase_poke.append(dic_skill_onbase_poke)
 
     # 配布限定の特別な技
     skill_gifted_poke = []
     if q != 0:
-        for i in range(0, len(list_skill_poke))[q + 1: r if r != 0 else s if s != 0 else (len(list_skill_poke) - 1): 2]:
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > q:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[q + 1: nxt: 2]:
             # {'わざ':'条件'}
             dic_skill_gifted_poke = {}
             list_events = []
@@ -295,7 +386,13 @@ for list_poke in lists_poke:
     # 過去作でしか覚えられない技
     skill_past_poke = []
     if r != 0:
-        for i in range(0, len(list_skill_poke))[r + 1: s if s != 0 else (len(list_skill_poke) - 1): 2]:
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > r:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[r + 1: nxt: 2]:
             # {'わざ':'バージョン'}
             dic_skill_past_poke = {}
             list_versions = []
@@ -307,7 +404,13 @@ for list_poke in lists_poke:
     # 過去の配布限定の特別な技
     skill_gifted_past_poke = []
     if s != 0:
-        for i in range(0, len(list_skill_poke))[s + 1: len(list_skill_poke) - 1: 2]:
+        # nxtの定義
+        for i in range(len(num_list)):
+            if num_list[i] > s:
+                nxt = num_list[i]
+                break
+        # 各種技リストに格納
+        for i in range(0, len(list_skill_poke))[s + 1: nxt: 2]:
             # {'わざ':'条件'}
             dic_skill_gifted_past_poke = {}
             list_past_events = []
