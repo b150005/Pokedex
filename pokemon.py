@@ -275,7 +275,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[k + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[k + 1: nxt if k < nxt else len(list_skill_poke): 2]:
             if list_skill_poke[i].text == 'なし':
                 break
             else:
@@ -290,7 +290,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[l + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[l + 1: nxt if l < nxt else len(list_skill_poke): 2]:
             if list_skill_poke[i].text == 'なし':
                 break
             else:
@@ -305,7 +305,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[m + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[m + 1: nxt if m < nxt else len(list_skill_poke): 2]:
             if list_skill_poke[i].text == 'なし':
                 break
             else:
@@ -322,7 +322,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[n + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[n + 1: nxt if n < nxt else len(list_skill_poke): 2]:
             if list_skill_poke[i].text == 'なし':
                 break
             else:
@@ -340,7 +340,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[o + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[o + 1: nxt if o < nxt else len(list_skill_poke): 2]:
             if list_skill_poke[i].text == 'なし':
                 break
             else:
@@ -358,7 +358,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[p + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[p + 1: nxt if p < nxt else len(list_skill_poke): 2]:
             if list_skill_poke[i].text == 'なし':
                 break
             else:
@@ -374,7 +374,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[q + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[q + 1: nxt if q < nxt else len(list_skill_poke): 2]:
             # {'わざ':'条件'}
             dic_skill_gifted_poke = {}
             list_events = []
@@ -392,7 +392,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[r + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[r + 1: nxt if r < nxt else len(list_skill_poke): 2]:
             # {'わざ':'バージョン'}
             dic_skill_past_poke = {}
             list_versions = []
@@ -410,7 +410,7 @@ for list_poke in lists_poke:
                 nxt = num_list[i]
                 break
         # 各種技リストに格納
-        for i in range(0, len(list_skill_poke))[s + 1: nxt: 2]:
+        for i in range(0, len(list_skill_poke))[s + 1: nxt if s < nxt else len(list_skill_poke): 2]:
             # {'わざ':'条件'}
             dic_skill_gifted_past_poke = {}
             list_past_events = []
